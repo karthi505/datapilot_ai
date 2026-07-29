@@ -8,10 +8,10 @@ import roleManagementRoutes from "./routes/roleManagementRoutes.js";
 import companyRoutes from "./routes/companyRoutes.js";
 import scanRoutes from "./routes/scanRoutes.js";
 
-
 const app = express();
 const PORT = process.env.PORT || 5050;
 
+// ✅ CORS FIRST — before express.json() and before routes
 app.use(
   cors({
     origin: [
@@ -21,8 +21,11 @@ app.use(
       "http://localhost:8081",
       "https://mini-project-woad-eight.vercel.app",
       "https://mini-project-indol-six.vercel.app",
+      "https://datapilot-bhxwnsoph-karthikxkrishnas-6471s-projects.vercel.app",
     ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 
@@ -30,7 +33,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-//Routes
+// Routes
 app.get("/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -48,7 +51,6 @@ app.use("/api/admin/role-management", roleManagementRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/scan", scanRoutes);
 
-
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({
@@ -58,7 +60,6 @@ app.use((req, res) => {
 });
 
 // Start server
-
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
