@@ -1,0 +1,157 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserType {
+  ADMIN
+  EMPLOYEE
+}
+
+enum ExecutionStatus {
+  BLOCKED
+  EXECUTED
+  FAILED
+}
+
+model Company {
+  id                    String                @id @default(uuid())
+  name                  String                @unique
+  createdAt             DateTime              @default(now()) 
+  isActive              Boolean               @default(true) 
+
+  users                 User[]
+  databaseConnections   DatabaseConnection[]
+  roles                 Role[]
+  processedSchema       ProcessedSchema?      
+
+  @@map("companies")
+}
+
+model User {
+  id                    String                @id @default(uuid())
+  companyId             String                @map("company_id")
+  name                  String                
+  email                 String                @unique 
+  password              String                
+  userType              UserType              
+  createdAt             DateTime              @default(now()) 
+  lastLoginAt           DateTime?             
+  isActive              Boolean               @default(true) 
+
+  otp                   String?
+  otpExpiry             DateTime?
+  verified              Boolean               @default(false)
+  
+  company               Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userRoles             UserRole[]
+  queryRequests         QueryRequest[]
+
+  @@map("users")
+}
+
+model DatabaseConnection {
+  id                    String                @id @default(uuid())
+  companyId             String                @map("company_id")
+  dbType                String                @default("POSTGRESQL") @db.VarChar(50) @map("db_type")
+  connectionString      String                @map("connection_string") // Note: Encryption handled at application level
+  schemaSnapshot        Json                  @map("schema_snapshot")
+  createdAt             DateTime              @default(now()) @map("created_at")
+  lastVerifiedAt        DateTime?             @map("last_verified_at")
+  isActive              Boolean               @default(true) @map("is_active")
+
+  company               Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("database_connections")
+}
+
+model Role {
+  id                    String                @id @default(uuid())
+  companyId             String                @map("company_id")
+  roleName              String                @db.VarChar(100) @map("role_name")
+  description           String?
+  createdAt             DateTime              @default(now()) @map("created_at")
+
+  company               Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  rolePermissions       RolePermission[]
+  userRoles             UserRole[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  id                    String                @id @default(uuid())
+  roleId                String                @map("role_id")
+  tableName             String                @db.VarChar(255) @map("table_name")
+  allowedColumns        String[]              @map("allowed_columns")
+  rowFilter             String?               @map("row_filter")
+  createdAt             DateTime              @default(now()) @map("created_at")
+
+  role                  Role                  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@map("role_permissions")
+}
+
+model UserRole {
+  id                    String                @id @default(uuid())
+  userId                String                @map("user_id")
+  roleId                String                @map("role_id")
+  assignedAt            DateTime              @default(now()) @map("assigned_at")
+
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role                  Role                  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@map("user_roles")
+}
+
+model QueryRequest {
+  id                    String                @id @default(uuid())
+  userId                String                @map("user_id")
+  naturalLanguagePrompt String                @map("natural_language_prompt")
+  createdAt             DateTime              @default(now()) @map("created_at")
+
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  generatedQueries      GeneratedQuery[]
+
+  @@map("query_requests")
+}
+
+model GeneratedQuery {
+  id                    String                @id @default(uuid())
+  queryRequestId        String                @map("query_request_id")
+  generatedSql          String                @map("generated_sql")
+  isValidated           Boolean               @default(false) @map("is_validated")
+  validationNotes       String?               @map("validation_notes")
+  executedAt            DateTime?             @map("executed_at")
+  executionStatus       ExecutionStatus?      @map("execution_status")
+  createdAt             DateTime              @default(now()) @map("created_at")
+
+  queryRequest          QueryRequest          @relation(fields: [queryRequestId], references: [id], onDelete: Cascade)
+
+  @@map("generated_queries")
+}
+
+model ProcessedSchema {
+  id                    String    @id @default(uuid())
+  companyId             String    @unique @map("company_id")
+  tables                Json      @map("tables")
+  scanStatus            String    @default("PENDING") @map("scan_status") // PENDING | SCANNING | DONE | FAILED
+  scanError             String?   @map("scan_error")
+  lastScannedAt         DateTime? @map("last_scanned_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  company               Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("processed_schemas")
+}

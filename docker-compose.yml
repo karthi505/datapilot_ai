@@ -1,0 +1,70 @@
+# version: '3.8'
+
+# services:
+#   backend:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile.backend
+#     ports:
+#       - "5050:5050"
+#     environment:
+#       - DATABASE_URL=postgresql://9486a9e025dd1540e6a60fe5c25c29350ada6bd684cd23eea524d99132641980:sk_Rg-wA6VLYYbPbjJjtv-sY@db.prisma.io:5432/postgres?sslmode=require
+#       - JWT_SECRET="f7c3c9e4c1d94b27a1b0f8f1e8f3d927d6c4b5a8e1c2f7a9b3d8e4c1a7f9d2b3"
+#       - GMAIL_USER=dummyagent777@gmail.com 
+#       - GMAIL_PASS=jaiknnqbpzznvhbc
+#       - ENCRYPTION_KEY= 9f3c7a1b8e4d2a6f0c5b9e7d1a4f8c2e6b0d3a9f7e5c1b2d4a8e6f3c9b0a1d
+#     depends_on:
+#       - db
+#     volumes:
+#       - ./backend/prisma:/app/prisma
+
+#   frontend:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile.frontend
+#     ports:
+#       - "8081:4173"
+#     depends_on:
+#       - backend
+
+#   db:
+#     image: postgres:15
+#     environment:
+#       - POSTGRES_USER=user
+#       - POSTGRES_PASSWORD=password
+#       - POSTGRES_DB=mydb
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+
+# volumes:
+#   postgres_data:
+
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "5050:5050"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - GMAIL_USER=${GMAIL_USER}
+      - GMAIL_PASS=${GMAIL_PASS}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    volumes:
+      - ./backend/prisma:/app/prisma
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "8081:4173"
+    depends_on:
+      - backend
