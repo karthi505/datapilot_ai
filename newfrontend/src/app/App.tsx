@@ -57,7 +57,7 @@ function App() {
   const fetchCompanies = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}companies/`,
+        `${import.meta.env.VITE_API_URL}/companies`,
       );
       const result = await response.json();
 
@@ -77,7 +77,7 @@ function App() {
   const handleLogin = async (email: string, password: string) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/auth/login`,
+        `${import.meta.env.VITE_API_URL}/auth/login`,
         {
           method: "POST",
           headers: {
@@ -136,7 +136,7 @@ function App() {
   }) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/auth/register/admin`,
+        `${import.meta.env.VITE_API_URL}/auth/register/admin`,
         {
           method: "POST",
           headers: {
@@ -198,7 +198,7 @@ function App() {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/auth/register/user`,
+        `${import.meta.env.VITE_API_URL}/auth/register/user`,
         {
           method: "POST",
           headers: {
@@ -249,7 +249,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/auth/resend-otp`,
+        `${import.meta.env.VITE_API_URL}/auth/resend-otp`,
         {
           method: "POST",
           headers: {
@@ -285,7 +285,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/auth/verify-otp`,
+        `${import.meta.env.VITE_API_URL}/auth/verify-otp`,
         {
           method: "POST",
           headers: {
@@ -361,7 +361,7 @@ function App() {
           onSubmit={async (email) => {
             try {
               await fetch(
-                `${import.meta.env.VITE_API_URL}/api/auth/forgot-password`,
+                `${import.meta.env.VITE_API_URL}/auth/forgot-password`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -386,7 +386,7 @@ function App() {
           onReset={async (otp, password) => {
             try {
               const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/auth/reset-password`,
+                `${import.meta.env.VITE_API_URL}/auth/reset-password`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
