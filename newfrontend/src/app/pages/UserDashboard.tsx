@@ -4,8 +4,6 @@ import { NaturalLanguageQuery } from "../components/user/NaturalLanguageQuery";
 import { QueryOutput } from "../components/user/QueryOutput";
 import { QueryHistory } from "../components/user/QueryHistory";
 import { AccessDenied } from "../components/user/AccessDenied";
-import { employeeService } from "../services/employeeService";
-import { queryService } from "../services/queryService";
 import { User, Message, QueryHistoryItem } from "../types";
 
 interface UserDashboardProps {
@@ -43,15 +41,13 @@ export function UserDashboard({
     setIsLoading(true);
 
     try {
-      // Call the backend API
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/query/submit`,
+        `${import.meta.env.VITE_API_URL}/query/submit`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            // Include authentication token if you're using JWT
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Adjust based on your auth implementation
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
           body: JSON.stringify({
             prompt: input,
@@ -63,7 +59,6 @@ export function UserDashboard({
 
       console.log(data);
       if (!response.ok) {
-        // Handle error responses
         setCurrentOutput({
           type: "error",
           content: data.message || "Failed to execute query",
@@ -75,7 +70,6 @@ export function UserDashboard({
         return;
       }
 
-      // Success response
       const historyItem: QueryHistoryItem = {
         id: data.data.queryRequestId,
         query: input,
@@ -117,7 +111,7 @@ export function UserDashboard({
   const fetchQueryHistory = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/query/history?page=1&limit=50`,
+        `${import.meta.env.VITE_API_URL}/query/history?page=1&limit=50`,
         {
           method: "GET",
           headers: {
@@ -134,9 +128,8 @@ export function UserDashboard({
         return;
       }
 
-      // Transform the backend response to match your frontend type
       const transformedHistory: QueryHistoryItem[] = data.data.queries.map(
-        (item: any) => ({
+        (item: { id: string; naturalLanguagePrompt: string; createdAt: string; generatedSql?: string }) => ({
           id: item.id,
           query: item.naturalLanguagePrompt,
           timestamp: new Date(item.createdAt),
@@ -151,19 +144,6 @@ export function UserDashboard({
     }
   };
 
-  // Loading state
-  // if (isCheckingEmployee) {
-  //   return (
-  //     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-  //       <div className="text-center">
-  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-  //         <p className="text-sm text-gray-500">Checking access...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
-  //Access denied state
   if (!isEmployee) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -177,7 +157,6 @@ export function UserDashboard({
     );
   }
 
-  // Main dashboard
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
@@ -188,7 +167,6 @@ export function UserDashboard({
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <NaturalLanguageQuery
               input={input}
@@ -199,7 +177,6 @@ export function UserDashboard({
             <QueryOutput isLoading={isLoading} output={currentOutput} />
           </div>
 
-          {/* Right Column - Query History */}
           <div className="lg:col-span-1">
             <QueryHistory
               history={queryHistory}
