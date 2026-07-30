@@ -160,12 +160,12 @@ export const employeeService = {
   },
 
   // Toggle employee status
-  toggleEmployeeStatus: async (
+    toggleEmployeeStatus: async (
     id: string,
   ): Promise<{ success: boolean; message: string }> => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/toggle-status/${id}`,
+        `${API_BASE_URL}/employees/${id}/toggle-status`,
         {
           method: "PATCH",
           headers: getAuthHeaders(),
