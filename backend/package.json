@@ -2,22 +2,23 @@
   "name": "hilariours-login",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/src/server.js",
+  "main": "dist/server.js",
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
-  "test": "echo \"Error: no test specified\" && exit 1",
-  "dev": "nodemon src/server.js",
-  "build": "npx prisma generate && rimraf dist && copyfiles -u 1 \"src/**/*\" dist",
-  "start": "node dist/server.js"
-},
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/server.js",
+    "build": "prisma generate && rimraf dist && copyfiles -u 1 \"src/**/*\" dist",
+    "start": "node dist/server.js"
+  },
+
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@prisma/adapter-pg": "^7.1.0",
+    "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
@@ -27,7 +28,7 @@
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^7.0.11",
     "pg": "^8.16.3",
-    "prisma": "^7.1.0"
+    "prisma": "^7.9.1"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
