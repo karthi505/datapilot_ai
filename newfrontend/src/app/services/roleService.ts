@@ -1,13 +1,47 @@
 // services/roleService.ts
 import { Role } from "../types";
 
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/admin/role-management`;
-const DB_API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/database`;
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/admin/role-management`;
+const DB_API_BASE_URL = `${import.meta.env.VITE_API_URL}/database`;
 
 const getAuthHeaders = () => ({
   "Content-Type": "application/json",
   Authorization: `Bearer ${localStorage.getItem("authToken")}`,
 });
+
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data?: T;
+}
+
+interface BackendRole {
+  id: string;
+  roleName: string;
+  description?: string;
+  tableAccess: string[];
+  assignedUsers?: number | Array<unknown>;
+  createdAt: string;
+}
+
+function transformRole(role: BackendRole): Role {
+  return {
+    id: role.id,
+    name: role.roleName,
+    description: role.description || "",
+    permissions: role.tableAccess.reduce(
+      (acc: Record<string, boolean>, table: string) => {
+        acc[table] = true;
+        return acc;
+      },
+      {} as Record<string, boolean>,
+    ),
+    assignedUsers: Array.isArray(role.assignedUsers)
+      ? role.assignedUsers.length
+      : role.assignedUsers || 0,
+    createdAt: role.createdAt,
+  };
+}
 
 export const roleService = {
   // Get all roles
@@ -18,27 +52,13 @@ export const roleService = {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch roles");
+        throw new Error(`Failed to fetch roles: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data: ApiResponse<BackendRole[]> = await response.json();
 
-      // Transform backend data to frontend format
       if (data.success && data.data) {
-        return data.data.map((role: any) => ({
-          id: role.id,
-          name: role.roleName,
-          description: role.description,
-          permissions: role.tableAccess.reduce(
-            (acc: Record<string, boolean>, table: string) => {
-              acc[table] = true;
-              return acc;
-            },
-            {} as Record<string, boolean>,
-          ),
-          assignedUsers: role.assignedUsers || 0,
-          createdAt: role.createdAt,
-        }));
+        return data.data.map(transformRole);
       }
 
       return [];
@@ -56,27 +76,13 @@ export const roleService = {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch role");
+        throw new Error(`Failed to fetch role: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data: ApiResponse<BackendRole> = await response.json();
 
       if (data.success && data.data) {
-        const role = data.data;
-        return {
-          id: role.id,
-          name: role.roleName,
-          description: role.description,
-          permissions: role.tableAccess.reduce(
-            (acc: Record<string, boolean>, table: string) => {
-              acc[table] = true;
-              return acc;
-            },
-            {} as Record<string, boolean>,
-          ),
-          assignedUsers: role.assignedUsers?.length || 0,
-          createdAt: role.createdAt,
-        };
+        return transformRole(data.data);
       }
 
       return null;
@@ -93,48 +99,33 @@ export const roleService = {
     permissions: Record<string, boolean>,
   ): Promise<{ success: boolean; message: string; data?: Role }> => {
     try {
-      // Convert permissions object to array of table names
       const tableAccess = Object.entries(permissions)
         .filter(([_, hasAccess]) => hasAccess)
-        .map(([table, _]) => table);
+        .map(([table]) => table);
 
       const response = await fetch(`${API_BASE_URL}/create`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({
           roleName: name,
-          description: description,
-          tableAccess: tableAccess,
+          description,
+          tableAccess,
         }),
       });
 
-      const data = await response.json();
+      const data: ApiResponse<BackendRole> = await response.json();
 
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || "Failed to create role",
+          message: data.message || `Failed to create role: ${response.status}`,
         };
       }
 
       return {
         success: true,
         message: data.message,
-        data: data.data
-          ? {
-              id: data.data.id,
-              name: data.data.roleName,
-              description: data.data.description,
-              permissions: data.data.tableAccess.reduce(
-                (acc: Record<string, boolean>, table: string) => {
-                  acc[table] = true;
-                  return acc;
-                },
-                {} as Record<string, boolean>,
-              ),
-              createdAt: data.data.createdAt,
-            }
-          : undefined,
+        data: data.data ? transformRole(data.data) : undefined,
       };
     } catch (error) {
       console.error("Error creating role:", error);
@@ -155,24 +146,24 @@ export const roleService = {
     try {
       const tableAccess = Object.entries(permissions)
         .filter(([_, hasAccess]) => hasAccess)
-        .map(([table, _]) => table);
+        .map(([table]) => table);
 
       const response = await fetch(`${API_BASE_URL}/roles/${roleId}`, {
         method: "PUT",
         headers: getAuthHeaders(),
         body: JSON.stringify({
           roleName: name,
-          description: description,
-          tableAccess: tableAccess,
+          description,
+          tableAccess,
         }),
       });
 
-      const data = await response.json();
+      const data: ApiResponse<unknown> = await response.json();
 
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || "Failed to update role",
+          message: data.message || `Failed to update role: ${response.status}`,
         };
       }
 
@@ -199,12 +190,12 @@ export const roleService = {
         headers: getAuthHeaders(),
       });
 
-      const data = await response.json();
+      const data: ApiResponse<unknown> = await response.json();
 
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || "Failed to delete role",
+          message: data.message || `Failed to delete role: ${response.status}`,
         };
       }
 
@@ -229,11 +220,11 @@ export const roleService = {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch available tables");
+        throw new Error(`Failed to fetch tables: ${response.status}`);
       }
 
-      const data = await response.json();
-      return data.success ? data.data : [];
+      const data: ApiResponse<string[]> = await response.json();
+      return data.success && data.data ? data.data : [];
     } catch (error) {
       console.error("Error fetching available tables:", error);
       return [];
@@ -252,44 +243,49 @@ export const roleService = {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch role stats");
+        throw new Error(`Failed to fetch stats: ${response.status}`);
       }
 
-      const data = await response.json();
-      return data.success ? data.data : null;
+      const data: ApiResponse<{ total: number; assigned: number; unassigned: number }> = await response.json();
+      return data.success && data.data ? data.data : null;
     } catch (error) {
       console.error("Error fetching role stats:", error);
       return null;
     }
   },
-  // NEW: Get table data (rows + columns) for the DatabaseViewer
+
+  // Get table data for DatabaseViewer
   getTableData: async (
     tableName: string,
   ): Promise<{ columns: string[]; rows: Record<string, unknown>[] }> => {
-    const response = await fetch(
-      `${DB_API_BASE_URL}/tables/${encodeURIComponent(tableName)}`,
-      {
-        headers: getAuthHeaders(),
-      },
-    );
+    try {
+      const response = await fetch(
+        `${DB_API_BASE_URL}/tables/${encodeURIComponent(tableName)}`,
+        {
+          headers: getAuthHeaders(),
+        },
+      );
 
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(data.message || "Failed to fetch table data");
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || `Failed to fetch table data: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.data?.columns && data.data?.rows) {
+        return { columns: data.data.columns, rows: data.data.rows };
+      }
+
+      if (data.columns && data.rows) {
+        return { columns: data.columns, rows: data.rows };
+      }
+
+      throw new Error("Unexpected response format from server");
+    } catch (error) {
+      console.error("Error fetching table data:", error);
+      throw error;
     }
-
-    const data = await response.json();
-
-    // Support both { columns, rows } and { data: { columns, rows } } response shapes
-    if (data.data?.columns && data.data?.rows) {
-      return { columns: data.data.columns, rows: data.data.rows };
-    }
-
-    if (data.columns && data.rows) {
-      return { columns: data.columns, rows: data.rows };
-    }
-
-    throw new Error("Unexpected response format from server");
   },
 
   // Initialize role permissions based on database tables
