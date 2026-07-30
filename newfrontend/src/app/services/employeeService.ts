@@ -1,12 +1,18 @@
 // services/employeeService.ts
 import { Employee } from "../types";
 
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/admin/employee-management`;
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/admin/employee-management`;
 
 const getAuthHeaders = () => ({
   "Content-Type": "application/json",
   Authorization: `Bearer ${localStorage.getItem("authToken")}`,
 });
+
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data?: T;
+}
 
 export const employeeService = {
   // Get all employees
@@ -17,11 +23,11 @@ export const employeeService = {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch employees");
+        throw new Error(`Failed to fetch employees: ${response.status}`);
       }
 
-      const data = await response.json();
-      return data.success ? data.data : [];
+      const data: ApiResponse<Employee[]> = await response.json();
+      return data.success && data.data ? data.data : [];
     } catch (error) {
       console.error("Error fetching employees:", error);
       return [];
@@ -39,11 +45,11 @@ export const employeeService = {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch employee");
+        throw new Error(`Failed to fetch employee: ${response.status}`);
       }
 
-      const data = await response.json();
-      return data.success ? data.data : null;
+      const data: ApiResponse<Employee> = await response.json();
+      return data.success && data.data ? data.data : null;
     } catch (error) {
       console.error("Error fetching employee:", error);
       return null;
@@ -64,12 +70,12 @@ export const employeeService = {
         body: JSON.stringify({ name, email, password, roleId }),
       });
 
-      const data = await response.json();
+      const data: ApiResponse<Employee> = await response.json();
 
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || "Failed to add employee",
+          message: data.message || `Failed to add employee: ${response.status}`,
         };
       }
 
@@ -99,12 +105,12 @@ export const employeeService = {
         body: JSON.stringify(updates),
       });
 
-      const data = await response.json();
+      const data: ApiResponse<unknown> = await response.json();
 
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || "Failed to update employee",
+          message: data.message || `Failed to update employee: ${response.status}`,
         };
       }
 
@@ -131,12 +137,12 @@ export const employeeService = {
         headers: getAuthHeaders(),
       });
 
-      const data = await response.json();
+      const data: ApiResponse<unknown> = await response.json();
 
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || "Failed to delete employee",
+          message: data.message || `Failed to delete employee: ${response.status}`,
         };
       }
 
@@ -159,19 +165,19 @@ export const employeeService = {
   ): Promise<{ success: boolean; message: string }> => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/employees/${id}/toggle-status`,
+        `${API_BASE_URL}/toggle-status/${id}`,
         {
           method: "PATCH",
           headers: getAuthHeaders(),
         },
       );
 
-      const data = await response.json();
+      const data: ApiResponse<unknown> = await response.json();
 
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || "Failed to toggle employee status",
+          message: data.message || `Failed to toggle status: ${response.status}`,
         };
       }
 
@@ -200,12 +206,12 @@ export const employeeService = {
         body: JSON.stringify({ roleId }),
       });
 
-      const data = await response.json();
+      const data: ApiResponse<unknown> = await response.json();
 
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || "Failed to assign role",
+          message: data.message || `Failed to assign role: ${response.status}`,
         };
       }
 
@@ -232,11 +238,11 @@ export const employeeService = {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch roles");
+        throw new Error(`Failed to fetch roles: ${response.status}`);
       }
 
-      const data = await response.json();
-      return data.success ? data.data : [];
+      const data: ApiResponse<Array<{ id: string; roleName: string; description: string }>> = await response.json();
+      return data.success && data.data ? data.data : [];
     } catch (error) {
       console.error("Error fetching available roles:", error);
       return [];
@@ -255,11 +261,11 @@ export const employeeService = {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch stats");
+        throw new Error(`Failed to fetch stats: ${response.status}`);
       }
 
-      const data = await response.json();
-      return data.success ? data.data : null;
+      const data: ApiResponse<{ total: number; active: number; inactive: number }> = await response.json();
+      return data.success && data.data ? data.data : null;
     } catch (error) {
       console.error("Error fetching employee stats:", error);
       return null;
