@@ -22,6 +22,7 @@ app.use(
       "https://mini-project-indol-six.vercel.app",
       "https://datapilot-bhxwnsoph-karthikxkrishnas-6471s-projects.vercel.app",
       "https://datapilot-ai-hazel.vercel.app",
+      "https://datapilot-il3mk7hjq-karthikxkrishnas-6471s-projects.vercel.app",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],

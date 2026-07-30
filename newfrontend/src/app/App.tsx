@@ -57,7 +57,7 @@ function App() {
   const fetchCompanies = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/companies/`,
+        `${import.meta.env.VITE_API_URL}companies/`,
       );
       const result = await response.json();
 
