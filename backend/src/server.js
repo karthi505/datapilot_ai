@@ -11,24 +11,34 @@ import scanRoutes from "./routes/scanRoutes.js";
 const app = express();
 const PORT = process.env.PORT || 5050;
 
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "http://localhost:4173",
-      "http://localhost:8081",
-      "https://mini-project-woad-eight.vercel.app",
-      "https://mini-project-indol-six.vercel.app",
-      "https://datapilot-bhxwnsoph-karthikxkrishnas-6471s-projects.vercel.app",
-      "https://datapilot-ai-hazel.vercel.app",
-      "https://datapilot-il3mk7hjq-karthikxkrishnas-6471s-projects.vercel.app",
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-);
+// Dynamic CORS — allows localhost and any Vercel domain
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  const allowed =
+    !origin ||
+    origin.includes("localhost") ||
+    origin.endsWith(".vercel.app");
+
+  if (allowed) {
+    res.header("Access-Control-Allow-Origin", origin || "*");
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -56,7 +66,6 @@ app.use((req, res) => {
   });
 });
 
-// Always start server (Render handles this)
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
