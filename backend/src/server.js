@@ -11,7 +11,6 @@ import scanRoutes from "./routes/scanRoutes.js";
 const app = express();
 const PORT = process.env.PORT || 5050;
 
-// CORS
 app.use(
   cors({
     origin: [
@@ -29,11 +28,9 @@ app.use(
   }),
 );
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
 app.get("/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -42,7 +39,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/query", queryRoutes);
 app.use("/api/database", databaseRoutes);
@@ -51,7 +47,6 @@ app.use("/api/admin/role-management", roleManagementRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/scan", scanRoutes);
 
-// 404 Handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -59,11 +54,7 @@ app.use((req, res) => {
   });
 });
 
-// Start server ONLY if not on Vercel
-if (process.env.VERCEL !== "1") {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-}
-
-export default app;
+// Always start server (Render handles this)
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

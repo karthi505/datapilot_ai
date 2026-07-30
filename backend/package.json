@@ -9,9 +9,8 @@
   "scripts": {
   "test": "echo \"Error: no test specified\" && exit 1",
   "dev": "nodemon src/server.js",
-  "build": "prisma generate",
-  "start": "node src/server.js",
-  "postinstall": "prisma generate"
+  "build": "npx prisma generate && rimraf dist && copyfiles -u 1 \"src/**/*\" dist",
+  "start": "node dist/server.js"
 },
   "keywords": [],
   "author": "",
