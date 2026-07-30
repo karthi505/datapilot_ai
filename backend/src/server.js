@@ -11,7 +11,7 @@ import scanRoutes from "./routes/scanRoutes.js";
 const app = express();
 const PORT = process.env.PORT || 5050;
 
-// ✅ CORS FIRST — before express.json() and before routes
+// CORS
 app.use(
   cors({
     origin: [
@@ -59,7 +59,11 @@ app.use((req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Start server ONLY if not on Vercel
+if (process.env.VERCEL !== "1") {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+export default app;
